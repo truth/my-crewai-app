@@ -11,8 +11,45 @@ CrewAI 软件开发全流程管理系统
 
 import os
 import sys
-from langchain_google_genai import ChatGoogleGenerativeAI
+from typing import Optional
+
+# 添加项目根目录到Python路径
+project_root = os.path.dirname(os.path.abspath(__file__))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+try:
+    from crewai import Crew
+    # 尝试导入Google Gemini，如果失败则使用OpenAI
+    try:
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        LLM_PROVIDER = "google"
+    except ImportError:
+        try:
+            from langchain_openai import ChatOpenAI
+            LLM_PROVIDER = "openai"
+        except ImportError:
+            print("警告: 未找到支持的LLM提供商，将使用模拟模式")
+            LLM_PROVIDER = "mock"
+except ImportError as e:
+    print(f"导入错误: {e}")
+    print("请确保已安装所需依赖: pip install crewai")
+    sys.exit(1)
+
+from config import Config
 from workflows import create_software_development_workflow
+from examples.complete_workflow_example import run_complete_workflow_example, run_single_stage_example
+
+class MockLLM:
+    """模拟LLM用于测试"""
+    def __init__(self):
+        self.model_name = "mock-llm"
+    
+    def invoke(self, prompt):
+        return "这是一个模拟响应，用于测试系统架构。在实际使用中，请配置真实的LLM API密钥。"
+    
+    def __call__(self, prompt):
+        return self.invoke(prompt)
 
 def check_environment():
     """
@@ -30,11 +67,51 @@ def create_llm():
     """
     创建语言模型实例
     """
-    return ChatGoogleGenerativeAI(
-        model="gemini-pro",
-        temperature=0.7,
-        google_api_key=os.getenv("GOOGLE_API_KEY")
-    )
+    if LLM_PROVIDER == "google":
+        api_key = os.getenv('GOOGLE_API_KEY')
+        if not api_key:
+            print("❌ 未设置GOOGLE_API_KEY环境变量")
+            print("请设置您的Google API密钥:")
+            print("Windows: set GOOGLE_API_KEY=your-api-key")
+            print("Linux/Mac: export GOOGLE_API_KEY='your-api-key'")
+            return None
+        
+        try:
+            llm = ChatGoogleGenerativeAI(
+                model="gemini-pro",
+                temperature=0.7,
+                google_api_key=api_key
+            )
+            print("✅ Google Gemini LLM 初始化成功")
+            return llm
+        except Exception as e:
+            print(f"❌ Google Gemini LLM初始化失败: {e}")
+            return None
+    
+    elif LLM_PROVIDER == "openai":
+        api_key = os.getenv('OPENAI_API_KEY')
+        if not api_key:
+            print("❌ 未设置OPENAI_API_KEY环境变量")
+            print("请设置您的OpenAI API密钥:")
+            print("Windows: set OPENAI_API_KEY=your-api-key")
+            print("Linux/Mac: export OPENAI_API_KEY='your-api-key'")
+            return None
+        
+        try:
+            llm = ChatOpenAI(
+                model="gpt-3.5-turbo",
+                temperature=0.7,
+                openai_api_key=api_key
+            )
+            print("✅ OpenAI LLM 初始化成功")
+            return llm
+        except Exception as e:
+            print(f"❌ OpenAI LLM初始化失败: {e}")
+            return None
+    
+    else:
+        print("⚠️  使用模拟模式 - 仅用于测试")
+        return MockLLM()
 
 def run_demo_project():
     """
@@ -206,4 +283,6 @@ def main():
         input("\n按回车键继续...")
 
 if __name__ == "__main__":
+    # 设置Google API密钥环境变量
+    os.environ["GOOGLE_API_KEY"] = "AIzaSyBgwJ43oFRLQweegXgj1OXgIbg1g8kz5Do"
     main()

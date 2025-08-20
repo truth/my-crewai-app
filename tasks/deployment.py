@@ -1,6 +1,13 @@
 from crewai import Task
 from agents import create_devops_engineer
-from langchain_google_genai import ChatGoogleGenerativeAI
+# 兼容不同的LLM提供商
+try:
+    from langchain_google_genai import ChatGoogleGenerativeAI
+except ImportError:
+    try:
+        from langchain_openai import ChatOpenAI
+    except ImportError:
+        pass  # 将在运行时处理
 
 def create_deployment_planning_task(agent, architecture_doc: str, environment_requirements: str) -> Task:
     """

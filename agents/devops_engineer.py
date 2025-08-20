@@ -1,7 +1,19 @@
 from crewai import Agent
-from langchain_google_genai import ChatGoogleGenerativeAI
+# 兼容不同的LLM提供商
+try:
+    from langchain_google_genai import ChatGoogleGenerativeAI
+except ImportError:
+    try:
+        from langchain_openai import ChatOpenAI
+    except ImportError:
+        pass  # 将在运行时处理
+except ImportError:
+    try:
+        from langchain_openai import ChatOpenAI
+    except ImportError:
+        pass  # 将在运行时处理
 
-def create_devops_engineer(llm: ChatGoogleGenerativeAI) -> Agent:
+def create_devops_engineer(llm) -> Agent:
     """
     创建DevOps工程师智能体
     负责部署、运维和CI/CD流水线设计
@@ -25,7 +37,7 @@ def create_devops_engineer(llm: ChatGoogleGenerativeAI) -> Agent:
         memory=True
     )
 
-def create_devops_engineer_with_tools(llm: ChatGoogleGenerativeAI, tools: list = None) -> Agent:
+def create_devops_engineer_with_tools(llm, tools: list = None) -> Agent:
     """
     创建带有自定义工具的DevOps工程师智能体
     """

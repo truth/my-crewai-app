@@ -1,7 +1,19 @@
 from crewai import Agent
-from langchain_google_genai import ChatGoogleGenerativeAI
+# 兼容不同的LLM提供商
+try:
+    from langchain_google_genai import ChatGoogleGenerativeAI
+except ImportError:
+    try:
+        from langchain_openai import ChatOpenAI
+    except ImportError:
+        pass  # 将在运行时处理
+except ImportError:
+    try:
+        from langchain_openai import ChatOpenAI
+    except ImportError:
+        pass  # 将在运行时处理
 
-def create_developer(llm: ChatGoogleGenerativeAI) -> Agent:
+def create_developer(llm) -> Agent:
     """
     创建开发工程师智能体
     负责代码设计、实现和优化
@@ -25,7 +37,7 @@ def create_developer(llm: ChatGoogleGenerativeAI) -> Agent:
         memory=True
     )
 
-def create_developer_with_tools(llm: ChatGoogleGenerativeAI, tools: list = None) -> Agent:
+def create_developer_with_tools(llm, tools: list = None) -> Agent:
     """
     创建带有自定义工具的开发工程师智能体
     """

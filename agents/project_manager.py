@@ -1,7 +1,16 @@
 from crewai import Agent
-from langchain_google_genai import ChatGoogleGenerativeAI
+from typing import List, Optional
 
-def create_project_manager(llm: ChatGoogleGenerativeAI) -> Agent:
+# 兼容不同的LLM提供商
+try:
+    from langchain_google_genai import ChatGoogleGenerativeAI
+except ImportError:
+    try:
+        from langchain_openai import ChatOpenAI
+    except ImportError:
+        pass  # 将在运行时处理
+
+def create_project_manager(llm) -> Agent:
     """
     创建项目经理智能体
     负责整体项目协调、进度管理和任务分配
@@ -22,7 +31,7 @@ def create_project_manager(llm: ChatGoogleGenerativeAI) -> Agent:
         memory=True
     )
 
-def create_project_manager_with_tools(llm: ChatGoogleGenerativeAI, tools: list = None) -> Agent:
+def create_project_manager_with_tools(llm, tools: list = None) -> Agent:
     """
     创建带有自定义工具的项目经理智能体
     """

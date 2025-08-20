@@ -1,5 +1,18 @@
 from crewai import Crew, Process
-from langchain_google_genai import ChatGoogleGenerativeAI
+from typing import Union
+
+# 尝试导入不同的LLM提供商
+try:
+    from langchain_google_genai import ChatGoogleGenerativeAI
+    LLM_AVAILABLE = True
+except ImportError:
+    try:
+        from langchain_openai import ChatOpenAI
+        LLM_AVAILABLE = True
+    except ImportError:
+        LLM_AVAILABLE = False
+        print("警告: 未找到支持的LLM提供商")
+
 from agents import (
     create_project_manager,
     create_requirements_analyst,
@@ -23,7 +36,7 @@ class SoftwareDevelopmentWorkflow:
     软件开发全流程工作流
     """
     
-    def __init__(self, llm: ChatGoogleGenerativeAI):
+    def __init__(self, llm):
         self.llm = llm
         self.agents = self._create_agents()
         
@@ -204,7 +217,7 @@ class SoftwareDevelopmentWorkflow:
             verbose=True
         )
 
-def create_software_development_workflow(llm: ChatGoogleGenerativeAI) -> SoftwareDevelopmentWorkflow:
+def create_software_development_workflow(llm) -> SoftwareDevelopmentWorkflow:
     """
     创建软件开发工作流实例
     """

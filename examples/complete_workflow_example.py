@@ -8,20 +8,47 @@
 """
 
 import os
-from langchain_google_genai import ChatGoogleGenerativeAI
+# 兼容不同的LLM提供商
+try:
+    from langchain_google_genai import ChatGoogleGenerativeAI
+except ImportError:
+    try:
+        from langchain_openai import ChatOpenAI
+    except ImportError:
+        pass  # 将在运行时处理
 from workflows import create_software_development_workflow
 
 def main():
     """
     运行完整的软件开发工作流示例
     """
-    # 配置Gemini模型
-    # 请确保设置了GOOGLE_API_KEY环境变量
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-pro",
-        temperature=0.7,
-        google_api_key=os.getenv("GOOGLE_API_KEY")
-    )
+    # 创建LLM实例（支持多种提供商）
+    llm = None
+    try:
+        if os.getenv("GOOGLE_API_KEY"):
+            llm = ChatGoogleGenerativeAI(
+                model="gemini-pro",
+                temperature=0.7,
+                google_api_key=os.getenv("GOOGLE_API_KEY")
+            )
+    except:
+        pass
+    
+    if llm is None:
+        try:
+            if os.getenv("OPENAI_API_KEY"):
+                llm = ChatOpenAI(
+                    model="gpt-3.5-turbo",
+                    temperature=0.7,
+                    openai_api_key=os.getenv("OPENAI_API_KEY")
+                )
+        except:
+            pass
+    
+    if llm is None:
+        print("⚠️  未找到可用的LLM提供商，使用模拟模式")
+        # 这里可以使用模拟LLM或退出
+        return
     
     # 创建工作流实例
     workflow = create_software_development_workflow(llm)
@@ -114,16 +141,48 @@ def main():
         print(f"❌ 执行过程中出现错误: {e}")
         print("请检查API密钥配置和网络连接")
 
+def run_complete_workflow_example(llm):
+    """
+    运行完整工作流示例
+    """
+    return main()
+
+def run_single_stage_example(llm, stage: str = "requirements"):
+    """
+    运行单阶段示例
+    """
+    return run_single_phase_example()
+
 def run_single_phase_example():
     """
     运行单个阶段的示例
     """
-    # 配置模型
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-pro",
-        temperature=0.7,
-        google_api_key=os.getenv("GOOGLE_API_KEY")
-    )
+    # 创建LLM实例（支持多种提供商）
+    llm = None
+    try:
+        if os.getenv("GOOGLE_API_KEY"):
+            llm = ChatGoogleGenerativeAI(
+                model="gemini-pro",
+                temperature=0.7,
+                google_api_key=os.getenv("GOOGLE_API_KEY")
+            )
+    except:
+        pass
+    
+    if llm is None:
+        try:
+            if os.getenv("OPENAI_API_KEY"):
+                llm = ChatOpenAI(
+                    model="gpt-3.5-turbo",
+                    temperature=0.7,
+                    openai_api_key=os.getenv("OPENAI_API_KEY")
+                )
+        except:
+            pass
+    
+    if llm is None:
+        print("⚠️  未找到可用的LLM提供商，使用模拟模式")
+        return
     
     # 创建工作流
     workflow = create_software_development_workflow(llm)

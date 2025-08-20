@@ -1,7 +1,19 @@
 from crewai import Agent
-from langchain_google_genai import ChatGoogleGenerativeAI
+# 兼容不同的LLM提供商
+try:
+    from langchain_google_genai import ChatGoogleGenerativeAI
+except ImportError:
+    try:
+        from langchain_openai import ChatOpenAI
+    except ImportError:
+        pass  # 将在运行时处理
+except ImportError:
+    try:
+        from langchain_openai import ChatOpenAI
+    except ImportError:
+        pass  # 将在运行时处理
 
-def create_system_architect(llm: ChatGoogleGenerativeAI) -> Agent:
+def create_system_architect(llm) -> Agent:
     """
     创建系统架构师智能体
     负责系统架构设计和技术方案制定
@@ -24,7 +36,7 @@ def create_system_architect(llm: ChatGoogleGenerativeAI) -> Agent:
         memory=True
     )
 
-def create_system_architect_with_tools(llm: ChatGoogleGenerativeAI, tools: list = None) -> Agent:
+def create_system_architect_with_tools(llm, tools: list = None) -> Agent:
     """
     创建带有自定义工具的系统架构师智能体
     """
